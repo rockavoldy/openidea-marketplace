@@ -1,0 +1,1 @@
+DELETE FROM pg_type WHERE typname = 'condition_enum';
