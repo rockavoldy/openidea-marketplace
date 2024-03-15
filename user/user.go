@@ -59,7 +59,7 @@ func (u *User) comparePassword(password string) error {
 }
 
 func (u *User) generateToken() string {
-	token, err := utils.CreateToken(u.Username, u.Name)
+	token, err := utils.CreateToken(u.ID, u.Username, u.Name)
 	if err != nil {
 		log.Println(err)
 	}

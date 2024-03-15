@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"log"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ func HashPassword(password string) (string, error) {
 }
 
 type CustomClaims struct {
+	UserID   int    `json:"user_id"`
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	jwt.RegisteredClaims
@@ -53,14 +55,17 @@ func Auth() gin.HandlerFunc {
 			if !token.Valid {
 				return
 			}
+			// when token still valid, pass userId via context
+			ctx.Request = ctx.Request.Clone(context.WithValue(ctx.Request.Context(), "userId", claims.UserID))
 		}
 
 		ctx.Next()
 	}
 }
 
-func CreateToken(username, name string) (string, error) {
+func CreateToken(user_id int, username, name string) (string, error) {
 	claims := CustomClaims{
+		user_id,
 		username,
 		name,
 		jwt.RegisteredClaims{
