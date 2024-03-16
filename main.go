@@ -2,6 +2,7 @@ package main
 
 import (
 	"MarketplaceAPI/bankaccount"
+	"MarketplaceAPI/payment"
 	"MarketplaceAPI/product"
 	"MarketplaceAPI/user"
 	"MarketplaceAPI/utils"
@@ -50,9 +51,13 @@ func main() {
 	user.SetPool(pool)
 	product.SetPool(pool)
 	bankaccount.SetPool(pool)
+	payment.SetPool(pool)
 	user.Router(v1)
 	product.Router(v1)
 	bankaccount.Router(v1)
+	payment.Router(v1)
+
+	// upload image route
 	authorized := v1.Group("/", utils.Auth())
 	authorized.POST("/image", uploadImage)
 

@@ -2,7 +2,6 @@ package bankaccount
 
 import (
 	"context"
-	"log"
 	"net/http"
 )
 
@@ -21,7 +20,6 @@ func getBankAccount(ctx context.Context, id int) (BankAccount, int, error) {
 		}
 		return BankAccount{}, http.StatusInternalServerError, err
 	}
-	log.Println(bankAccount)
 
 	return bankAccount, http.StatusOK, nil
 }
@@ -60,7 +58,6 @@ func createBankAccount(ctx context.Context, bankAccount BankAccount) (BankAccoun
 	}
 
 	id, err := saveBankAccount(ctx, tx, bankAccount)
-	log.Println(id)
 	if err != nil {
 		tx.Rollback(ctx)
 		return BankAccount{}, http.StatusInternalServerError, err

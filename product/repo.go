@@ -71,6 +71,52 @@ func saveProductTags(ctx context.Context, tx pgx.Tx, productId int, names []stri
 	return getProductTagsByProductId(ctx, tx, productId)
 }
 
+func fetchProducts(ctx context.Context, tx pgx.Tx) ([]Product, error) {
+	var productsCount int
+	queryCount := `SELECT COUNT(id) AS count FROM products WHERE deleted_at IS NULL`
+	row := tx.QueryRow(ctx, queryCount)
+	err := row.Scan(&productsCount)
+	if err != nil {
+		return []Product{}, err
+	}
+	if productsCount == 0 {
+		return []Product{}, nil
+	}
+
+	products := make([]Product, 0)
+
+	query := `SELECT id, user_id, name, price, image_url, stock, condition, is_purchasable, created_at, updated_at, deleted_at FROM products WHERE deleted_at IS NULL`
+	rows, err := tx.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var product Product
+
+		err := rows.Scan(&product.ID, &product.UserID, &product.Name, &product.Price, &product.ImageURL, &product.Stock, &product.Condition, &product.IsPurchasable, &product.CreatedAt, &product.UpdatedAt, &product.DeletedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	for idx, product := range products {
+		tags, err := getProductTagsByProductId(ctx, tx, product.ID)
+		if err != nil {
+			if err != pgx.ErrNoRows {
+				log.Println(err)
+			}
+		}
+
+		products[idx].assignTags(tags)
+	}
+
+	return products, nil
+}
+
 func findProductById(ctx context.Context, tx pgx.Tx, id int) (Product, error) {
 	query := `SELECT id, user_id, name, price, image_url, stock, condition, is_purchasable, created_at, updated_at, deleted_at FROM products WHERE id = $1 AND deleted_at IS NULL`
 	row := tx.QueryRow(ctx, query, id)

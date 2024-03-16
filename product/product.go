@@ -30,6 +30,7 @@ type Product struct {
 
 var (
 	ErrProductNotFound = fmt.Errorf("product not found")
+	ErrQtyInvalid      = fmt.Errorf("product quantity is invalid")
 )
 
 func NewProduct(name, imageUrl string, price uint64, stock uint, condition Cond, isPurchasable bool) Product {
@@ -72,4 +73,21 @@ func (p *Product) patchWith(patch map[string]any) {
 			p.DeletedAt = patch[k].(pgtype.Timestamp)
 		}
 	}
+}
+
+func (p *Product) assignTags(tags []string) {
+	p.Tags = tags
+}
+
+func (p *Product) ReduceStock(qty uint) error {
+	if qty < 0 {
+		return ErrQtyInvalid
+	}
+	if (p.Stock - qty) < 0 {
+		return ErrQtyInvalid
+	}
+
+	p.Stock = p.Stock - qty
+
+	return nil
 }

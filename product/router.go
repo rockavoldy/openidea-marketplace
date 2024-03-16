@@ -20,7 +20,8 @@ func Router(rg *gin.RouterGroup) {
 	productRouter.DELETE("/:product_id", deleteHandler)
 
 	productRouter.GET("/:product_id", getProductHandler)
-
+	productRouter.GET("/", fetchProductHandler)
+	productRouter.POST("/:product_id/stock", updateStockHandler)
 }
 
 func createHandler(c *gin.Context) {
@@ -62,7 +63,7 @@ func patchHandler(c *gin.Context) {
 		return
 	}
 
-	product, statusCode, err := getProduct(ctx, productUri.ProductID)
+	product, statusCode, err := GetProduct(ctx, productUri.ProductID)
 	if err != nil {
 		resp := utils.Response(err.Error(), productRequest)
 		c.IndentedJSON(statusCode, resp)
@@ -71,7 +72,7 @@ func patchHandler(c *gin.Context) {
 	}
 	product.patchWith(productRequest)
 
-	product, statusCode, err = patchProduct(ctx, product)
+	product, statusCode, err = PatchProduct(ctx, product)
 	if err != nil {
 		resp := utils.Response(err.Error(), productRequest)
 		c.IndentedJSON(statusCode, resp)
@@ -113,7 +114,7 @@ func getProductHandler(c *gin.Context) {
 		return
 	}
 
-	product, statusCode, err := getProduct(ctx, productUri.ProductID)
+	product, statusCode, err := GetProduct(ctx, productUri.ProductID)
 	if err != nil {
 		resp := utils.Response(err.Error(), nil)
 		c.IndentedJSON(statusCode, resp)
@@ -122,6 +123,52 @@ func getProductHandler(c *gin.Context) {
 	}
 
 	resp := utils.Response("Product get successfully", product)
+
+	c.IndentedJSON(statusCode, resp)
+}
+
+func fetchProductHandler(c *gin.Context) {
+	ctx := c.Request.Context()
+	products, statusCode, err := listProducts(ctx)
+	if err != nil {
+		resp := utils.Response(err.Error(), nil)
+		c.IndentedJSON(statusCode, resp)
+
+		return
+	}
+
+	resp := utils.Response("Products list", products)
+
+	c.IndentedJSON(statusCode, resp)
+}
+
+func updateStockHandler(c *gin.Context) {
+	var productUri ProductUri
+	var productRequest map[string]uint
+	c.BindJSON(productRequest)
+	ctx := c.Request.Context()
+	if err := c.ShouldBindUri(&productUri); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, utils.Response(err.Error(), nil))
+		return
+	}
+
+	product, statusCode, err := GetProduct(ctx, productUri.ProductID)
+	if err != nil {
+		resp := utils.Response(err.Error(), nil)
+		c.IndentedJSON(statusCode, resp)
+
+		return
+	}
+
+	err = product.ReduceStock(productRequest["stock"])
+	if err != nil {
+		resp := utils.Response(err.Error(), nil)
+		c.IndentedJSON(statusCode, resp)
+
+		return
+	}
+
+	resp := utils.Response("Product stock updated", product)
 
 	c.IndentedJSON(statusCode, resp)
 }

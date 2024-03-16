@@ -5,7 +5,23 @@ import (
 	"net/http"
 )
 
-func getProduct(ctx context.Context, id int) (Product, int, error) {
+func listProducts(ctx context.Context) ([]Product, int, error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+		return []Product{}, http.StatusInternalServerError, err
+	}
+	defer tx.Commit(ctx)
+
+	products, err := fetchProducts(ctx, tx)
+	if err != nil {
+		return []Product{}, http.StatusInternalServerError, err
+	}
+
+	return products, http.StatusOK, nil
+}
+
+func GetProduct(ctx context.Context, id int) (Product, int, error) {
 	tx, err := pool.Begin(ctx)
 	if err != nil {
 		tx.Rollback(ctx)
@@ -48,10 +64,10 @@ func createProduct(ctx context.Context, product Product) (Product, int, error) {
 	}
 	tx.Commit(ctx)
 
-	return getProduct(ctx, id)
+	return GetProduct(ctx, id)
 }
 
-func patchProduct(ctx context.Context, product Product) (Product, int, error) {
+func PatchProduct(ctx context.Context, product Product) (Product, int, error) {
 	tx, err := pool.Begin(ctx)
 	if err != nil {
 		tx.Rollback(ctx)
@@ -75,7 +91,7 @@ func deleteProduct(ctx context.Context, productId int) (Product, int, error) {
 	}
 	defer tx.Commit(ctx)
 
-	product, statusCode, err := getProduct(ctx, productId)
+	product, statusCode, err := GetProduct(ctx, productId)
 	if err != nil {
 		tx.Rollback(ctx)
 		return Product{}, statusCode, err
@@ -90,4 +106,20 @@ func deleteProduct(ctx context.Context, productId int) (Product, int, error) {
 
 	return product, statusCode, nil
 
+}
+
+func StockAdjustment(ctx context.Context, qty int, product Product) (Product, int, error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+		return Product{}, http.StatusInternalServerError, err
+	}
+	defer tx.Commit(ctx)
+
+	if err := updateProduct(ctx, tx, product); err != nil {
+		tx.Rollback(ctx)
+		return Product{}, http.StatusInternalServerError, err
+	}
+
+	return product, http.StatusOK, nil
 }
