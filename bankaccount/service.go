@@ -57,6 +57,12 @@ func createBankAccount(ctx context.Context, bankAccount BankAccount) (BankAccoun
 		bankAccount.UserID = userId
 	}
 
+	err = bankAccount.validate()
+	if err != nil {
+		tx.Rollback(ctx)
+		return BankAccount{}, http.StatusBadRequest, err
+	}
+
 	id, err := saveBankAccount(ctx, tx, bankAccount)
 	if err != nil {
 		tx.Rollback(ctx)
@@ -74,6 +80,12 @@ func patchBankAccount(ctx context.Context, bankAccount BankAccount) (BankAccount
 		return BankAccount{}, http.StatusInternalServerError, err
 	}
 	defer tx.Commit(ctx)
+
+	err = bankAccount.validate()
+	if err != nil {
+		tx.Rollback(ctx)
+		return BankAccount{}, http.StatusBadRequest, err
+	}
 
 	if err := updateBankAccount(ctx, tx, bankAccount); err != nil {
 		tx.Rollback(ctx)

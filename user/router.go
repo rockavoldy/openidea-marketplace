@@ -83,7 +83,7 @@ func loginHandler(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusCreated, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"message": "User logged successfully",
 		"data": gin.H{
 			"username":    user.Username,
