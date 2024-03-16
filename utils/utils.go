@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -11,7 +12,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const JWT_SECRET_KEY = "23hj23hk2asdhaskj"
+func jwtSecretKey() string {
+	jwtSeretKey := os.Getenv("JWT_SECRET")
+	if jwtSeretKey == "" {
+		return "justrandomstringfordefaultpurposes"
+	}
+
+	return jwtSeretKey
+}
+
+var JWT_SECRET_KEY = jwtSecretKey()
 
 func Response(message string, data any) gin.H {
 	return gin.H{
