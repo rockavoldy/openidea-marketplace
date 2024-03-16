@@ -8,13 +8,11 @@ import (
 )
 
 type BankAccountUri struct {
-	BankAccountID int `uri:"bank_account_id" binding:"required"`
+	BankAccountID int `uri:"bank_account_id"`
 }
 
 func Router(rg *gin.RouterGroup) {
 	bankAccountRouter := rg.Group("/bank/account")
-	bankAccountRouter.Use(utils.Auth())
-
 	bankAccountRouter.POST("/", createHandler)
 	bankAccountRouter.GET("/", listHandler)
 	bankAccountRouter.PATCH("/:bank_account_id", patchHandler)
@@ -50,7 +48,7 @@ func listHandler(c *gin.Context) {
 
 		return
 	}
-	resp := utils.Response("Bank account updated successfully", bankAccounts)
+	resp := utils.Response("List bank accounts", bankAccounts)
 
 	c.IndentedJSON(statusCode, resp)
 
@@ -60,8 +58,12 @@ func patchHandler(c *gin.Context) {
 	var baccountRequest map[string]string
 	var baccountUri BankAccountUri
 	ctx := c.Request.Context()
-	c.BindJSON(&baccountRequest)
 	if err := c.ShouldBindUri(&baccountUri); err != nil {
+		c.IndentedJSON(http.StatusNotFound, utils.Response(err.Error(), nil))
+		return
+	}
+
+	if err := c.BindJSON(&baccountRequest); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, utils.Response(err.Error(), nil))
 		return
 	}

@@ -11,11 +11,17 @@ func DbConnStr() string {
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
+	var dbNonLocal string
 	if dbUsername == "" || dbPassword == "" || dbHost == "" || dbPort == "" || dbName == "" {
 		return ""
 	}
+	if os.Getenv("ENV") == "production" {
+		dbNonLocal = "verify-full"
+	} else {
+		dbNonLocal = "disable"
+	}
 
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, dbHost, dbPort, dbName)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", dbUsername, dbPassword, dbHost, dbPort, dbName, dbNonLocal)
 }
 
 func JWTSecretKey() string {

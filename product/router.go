@@ -13,7 +13,6 @@ type ProductUri struct {
 
 func Router(rg *gin.RouterGroup) {
 	productRouter := rg.Group("/product")
-	productRouter.Use(utils.Auth())
 
 	productRouter.POST("/", createHandler)
 	productRouter.PATCH("/:product_id", patchHandler)
@@ -122,7 +121,7 @@ func getProductHandler(c *gin.Context) {
 		return
 	}
 
-	resp := utils.Response("Product get successfully", product)
+	resp := utils.Response("Get product", product)
 
 	c.IndentedJSON(statusCode, resp)
 }

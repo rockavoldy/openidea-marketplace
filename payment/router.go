@@ -10,7 +10,6 @@ import (
 
 func Router(rg *gin.RouterGroup) {
 	productRouter := rg.Group("/product")
-	productRouter.Use(utils.Auth())
 
 	productRouter.POST("/:product_id/buy", buyProductHandler)
 

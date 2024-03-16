@@ -21,6 +21,14 @@ func jwtSecretKey() string {
 	return jwtSeretKey
 }
 
+func ExpireDuration() time.Duration {
+	if os.Getenv("ENV") == "production" || os.Getenv("GIN_MODE") == "release" {
+		return 2 * time.Minute
+	}
+
+	return 24 * time.Hour
+}
+
 var JWT_SECRET_KEY = jwtSecretKey()
 
 func Response(message string, data any) gin.H {
@@ -82,7 +90,7 @@ func CreateToken(user_id int, username, name string) (string, error) {
 		username,
 		name,
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ExpireDuration())),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},

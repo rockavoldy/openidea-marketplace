@@ -48,29 +48,34 @@ func main() {
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	v1 := router.Group("/v1")
+	// when no route, will make sure it will go through
+	router.NoRoute(utils.Auth())
+	authorized := v1.Group("/", utils.Auth())
 	user.SetPool(pool)
 	product.SetPool(pool)
 	bankaccount.SetPool(pool)
 	payment.SetPool(pool)
 	user.Router(v1)
-	product.Router(v1)
-	bankaccount.Router(v1)
-	payment.Router(v1)
+	product.Router(authorized)
+	bankaccount.Router(authorized)
+	payment.Router(authorized)
 
 	// upload image route
-	authorized := v1.Group("/", utils.Auth())
 	authorized.POST("/image", uploadImage)
 
 	router.Run("0.0.0.0:8000")
 }
 
 func uploadImage(c *gin.Context) {
-	file, _ := c.FormFile("file")
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.IndentedJSON(400, err)
+		return
+	}
 
 	// Upload the file to specific dst.
 	f, err := file.Open()
 	if err != nil {
-		log.Println(err)
 		c.IndentedJSON(400, err)
 		return
 	}
@@ -123,7 +128,6 @@ func uploadToS3(filename string, fileObj io.Reader) (string, error) {
 		Body:   fileObj,
 	})
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
