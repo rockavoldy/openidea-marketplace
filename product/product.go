@@ -79,15 +79,14 @@ func (p *Product) assignTags(tags []string) {
 	p.Tags = tags
 }
 
-func (p *Product) ReduceStock(qty uint) error {
-	if qty < 0 {
-		return ErrQtyInvalid
-	}
-	if (p.Stock - qty) < 0 {
-		return ErrQtyInvalid
-	}
+// func (p *Product) ReduceStock(qty uint) error {
 
-	p.Stock = p.Stock - qty
+// }
 
-	return nil
+func (p *Product) AdjustStock(qty uint) {
+	// if qty < 0 {
+	// 	return ErrQtyInvalid
+	// }
+
+	p.Stock = qty
 }

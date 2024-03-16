@@ -31,3 +31,7 @@ func NewPayment(userId, productId, bankAccountId int) Payment {
 		BankAccountID: bankAccountId,
 	}
 }
+
+func (p *Payment) addUserID(userId int) {
+	p.UserID = userId
+}

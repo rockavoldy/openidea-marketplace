@@ -50,8 +50,6 @@ func saveProductTags(ctx context.Context, tx pgx.Tx, productId int, names []stri
 		return nil, err
 	}
 
-	log.Println(names)
-
 	rows := make([][]any, 0)
 
 	for _, item := range names {

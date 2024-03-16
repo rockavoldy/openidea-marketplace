@@ -26,6 +26,7 @@ func buyProductHandler(c *gin.Context) {
 		return
 	}
 
+	paymentRequest.ProductID = productUri.ProductID
 	payment, statusCode, err := buyProduct(ctx, paymentRequest)
 	if err != nil {
 		resp := utils.Response(err.Error(), payment)

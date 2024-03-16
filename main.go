@@ -66,7 +66,6 @@ func main() {
 
 func uploadImage(c *gin.Context) {
 	file, _ := c.FormFile("file")
-	log.Println(file.Filename)
 
 	// Upload the file to specific dst.
 	f, err := file.Open()
@@ -85,7 +84,6 @@ func uploadImage(c *gin.Context) {
 	filenameSplit := strings.Split(file.Filename, ".")
 	fileExt := filenameSplit[len(filenameSplit)-1]
 	uuidFilename := fmt.Sprintf("%s.%s", uuid.NewString(), fileExt)
-	log.Println(fileExt)
 	if strings.ToLower(fileExt) == "jpg" || strings.ToLower(fileExt) == "jpeg" {
 		publicUrl, err := uploadToS3(uuidFilename, f)
 

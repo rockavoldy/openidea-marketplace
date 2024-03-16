@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS "payments" (
   "product_id" int NOT NULL,
   "bank_account_id" int NOT NULL,
   "payment_proof_image_url" varchar(255) NOT NULL,
+  "quantity" int NOT NULL,
   "created_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updated_at" timestamp,
   "deleted_at" timestamp

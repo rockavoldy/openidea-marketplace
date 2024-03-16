@@ -33,19 +33,20 @@ func buyProduct(ctx context.Context, payment Payment) (Payment, int, error) {
 	}
 	defer tx.Commit(ctx)
 
-	product, statusCode, err := productObj.GetProduct(ctx, payment.ProductID)
+	userId, ok := ctx.Value("userId").(int)
+	if ok {
+		payment.addUserID(userId)
+	}
+
+	product, _, err := productObj.GetProduct(ctx, payment.ProductID)
 	if err != nil {
 		tx.Rollback(ctx)
 		return Payment{}, http.StatusInternalServerError, err
 	}
 
-	err = product.ReduceStock(payment.Quantity)
-	if err != nil {
-		tx.Rollback(ctx)
-		return Payment{}, http.StatusBadRequest, err
-	}
+	product.AdjustStock(product.Stock - payment.Quantity)
 
-	product, statusCode, err = productObj.PatchProduct(ctx, product)
+	product, _, err = productObj.PatchProduct(ctx, product)
 	if err != nil {
 		tx.Rollback(ctx)
 		return Payment{}, http.StatusInternalServerError, err
@@ -58,11 +59,5 @@ func buyProduct(ctx context.Context, payment Payment) (Payment, int, error) {
 	}
 	tx.Commit(ctx)
 
-	// since there is no error, continue to reduce the stock
-	payment, statusCode, err = getPayment(ctx, id)
-	if err != nil {
-		tx.Rollback(ctx)
-	}
-
-	return payment, statusCode, nil
+	return getPayment(ctx, id)
 }

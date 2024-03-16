@@ -145,7 +145,7 @@ func fetchProductHandler(c *gin.Context) {
 func updateStockHandler(c *gin.Context) {
 	var productUri ProductUri
 	var productRequest map[string]uint
-	c.BindJSON(productRequest)
+	c.BindJSON(&productRequest)
 	ctx := c.Request.Context()
 	if err := c.ShouldBindUri(&productUri); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, utils.Response(err.Error(), nil))
@@ -160,7 +160,15 @@ func updateStockHandler(c *gin.Context) {
 		return
 	}
 
-	err = product.ReduceStock(productRequest["stock"])
+	product.AdjustStock(productRequest["stock"])
+	if err != nil {
+		resp := utils.Response(err.Error(), nil)
+		c.IndentedJSON(statusCode, resp)
+
+		return
+	}
+
+	product, statusCode, err = PatchProduct(ctx, product)
 	if err != nil {
 		resp := utils.Response(err.Error(), nil)
 		c.IndentedJSON(statusCode, resp)
