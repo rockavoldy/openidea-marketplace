@@ -13,7 +13,7 @@ import (
 
 const JWT_SECRET_KEY = "23hj23hk2asdhaskj"
 
-func Response(message string, data gin.H) gin.H {
+func Response(message string, data any) gin.H {
 	return gin.H{
 		"message": message,
 		"data":    data,
@@ -41,6 +41,7 @@ func Auth() gin.HandlerFunc {
 		authTokenHeader := ctx.Request.Header.Get("Authorization")
 		_, authToken, found := strings.Cut(authTokenHeader, "Bearer ")
 		if !found {
+			ctx.AbortWithStatus(401)
 			return
 		}
 
@@ -50,9 +51,11 @@ func Auth() gin.HandlerFunc {
 
 		if err != nil {
 			log.Println(err)
+			ctx.AbortWithStatus(401)
+			return
 		} else if claims, ok := token.Claims.(*CustomClaims); ok {
-			log.Println(claims)
 			if !token.Valid {
+				ctx.AbortWithStatus(401)
 				return
 			}
 			// when token still valid, pass userId via context

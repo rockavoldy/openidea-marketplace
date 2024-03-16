@@ -1,6 +1,7 @@
 package main
 
 import (
+	"MarketplaceAPI/product"
 	"MarketplaceAPI/user"
 	"context"
 	"fmt"
@@ -31,7 +32,9 @@ func main() {
 
 	v1 := router.Group("/v1")
 	user.SetPool(pool)
+	product.SetPool(pool)
 	user.Router(v1)
+	product.Router(v1)
 
 	router.Run("0.0.0.0:8000")
 }
